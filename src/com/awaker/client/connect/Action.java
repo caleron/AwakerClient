@@ -1,5 +1,8 @@
 package com.awaker.client.connect;
 
+import com.awaker.client.media.MediaManager;
+import com.awaker.client.media.TrackWrapper;
+
 import java.awt.*;
 import java.io.*;
 import java.net.Socket;
@@ -64,6 +67,10 @@ public class Action {
         return new Action("setRepeatMode", new String[]{String.valueOf(repeatMode)}, listener);
     }
 
+    public static Action setVolume(int volume, ResponseListener listener) {
+        return new Action("setVolume", new String[]{String.valueOf(volume)}, listener);
+    }
+
     public static Action playNext(ResponseListener listener) {
         return new Action("playNext", null, listener);
     }
@@ -113,6 +120,9 @@ public class Action {
         return new Action("sendString", new String[]{contents}, null);
     }
 
+    public static Action shutdown() {
+        return new Action("shutdown", null, null);
+    }
 
     public void execute(Socket socket) throws IOException {
         //Befehlsstring basteln
@@ -150,21 +160,16 @@ public class Action {
     private String getCommandString() {
         String action = command;
         switch (command) {
-            case "playFile":/*
-                MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-                try {
-                    mmr.setDataSource(filePath);
-                } catch (IllegalArgumentException ex) {
-                    //Falls die Datei nicht mehr existiert
+            case "playFile":
+                TrackWrapper trackWrapper = MediaManager.readFile(new File(filePath));
+
+                if (trackWrapper == null) {
                     listener.fileNotFound();
+                } else {
+                    action += ";" + trackWrapper.title;
+                    action += ";" + trackWrapper.artist;
                 }
 
-                String artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
-                String title = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-
-                action += ";" + title;
-                action += ";" + artist;
-                */
                 break;
             case "uploadAndPlayFile":
                 File fileToSend = new File(filePath);
@@ -199,7 +204,7 @@ public class Action {
         return action;
     }
 
-    private void sendString(String str, OutputStream os) throws IOException {
+    private static void sendString(String str, OutputStream os) throws IOException {
         byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
 
         //abschicken

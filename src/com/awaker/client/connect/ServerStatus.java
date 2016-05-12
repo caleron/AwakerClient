@@ -1,9 +1,13 @@
 package com.awaker.client.connect;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.Serializable;
 
+@SuppressWarnings("unused")
 public class ServerStatus implements Serializable, ResponseListener {
+    private static final long serialVersionUID = 1978521315878247101L;
+
     public static final int REPEAT_MODE_NONE = 0;
     public static final int REPEAT_MODE_ONE = 1;
     public static final int REPEAT_MODE_ALL = 2;
@@ -23,10 +27,21 @@ public class ServerStatus implements Serializable, ResponseListener {
     private int whiteBrightness;
     private Color currentColor;
     private int colorBrightness;
+    private int volume;
+    private int serverVolume;
+
+    private Timer volumeApplyTimer;
+    private long lastVolumeChange = 0L;
 
     public ServerStatus(StatusChangedListener listener, ServerConnect serverConnect) {
         this.serverConnect = serverConnect;
         this.listener = listener;
+
+        volumeApplyTimer = new Timer(300, e -> {
+            volume = serverVolume;
+            listener.serverStatusChanged(false);
+        });
+        volumeApplyTimer.setRepeats(false);
     }
 
     /**
@@ -84,6 +99,15 @@ public class ServerStatus implements Serializable, ResponseListener {
                     break;
                 case "playPosition":
                     playPosition = Integer.parseInt(pair[1]);
+                    break;
+                case "volume":
+                    if (lastVolumeChange + 1000 > System.currentTimeMillis()) {
+                        serverVolume = Integer.parseInt(pair[1]);
+                        volumeApplyTimer.restart();
+                    } else {
+                        volume = Integer.parseInt(pair[1]);
+                    }
+
                     break;
                 case "colorMode":
                     colorMode = pair[1];
@@ -304,6 +328,32 @@ public class ServerStatus implements Serializable, ResponseListener {
         serverConnect.executeAction(Action.setRepeatMode(repeatMode, this));
     }
 
+    public void setVolume(int volume) {
+        if (volume >= 100) {
+            volume = 100;
+        } else if (volume <= 0) {
+            volume = 0;
+        }
+
+        if (this.volume != volume) {
+            this.volume = volume;
+            serverConnect.executeAction(Action.setVolume(volume, this));
+            lastVolumeChange = System.currentTimeMillis();
+        }
+    }
+
+    public void increaseVolume() {
+        setVolume(volume + 2);
+    }
+
+    public void decreaseVolume() {
+        setVolume(volume - 2);
+    }
+
+    public int getVolume() {
+        return volume;
+    }
+
     /**
      * Gibt den Playbackstatus zurück.
      *
@@ -366,5 +416,9 @@ public class ServerStatus implements Serializable, ResponseListener {
      */
     public void sendString(String str) {
         serverConnect.executeAction(Action.sendString(str));
+    }
+
+    public void shutdownServer() {
+        serverConnect.executeAction(Action.shutdown());
     }
 }

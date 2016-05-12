@@ -125,6 +125,7 @@ public class ServerConnect {
         if (socket != null) {
             try {
                 socket.close();
+                taskQueue.clear();
                 System.out.println("socket closed after timeout");
             } catch (IOException e) {
                 e.printStackTrace();

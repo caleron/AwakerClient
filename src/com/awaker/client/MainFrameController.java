@@ -5,19 +5,26 @@ import com.awaker.client.connect.ServerStatus;
 import com.awaker.client.connect.StatusChangedListener;
 import com.awaker.client.custom.SeekListener;
 import com.awaker.client.util.Prefs;
+import com.awaker.client.util.Util;
 import com.melloware.jintellitype.IntellitypeListener;
 import com.melloware.jintellitype.JIntellitype;
+import com.melloware.jintellitype.JIntellitypeConstants;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 
-class MainFrameController implements ActionListener, StatusChangedListener, SeekListener, IntellitypeListener {
+class MainFrameController implements ActionListener, StatusChangedListener, SeekListener, IntellitypeListener, ChangeListener, MouseWheelListener {
     private MainFrame mainFrame;
     private ServerStatus serverStatus;
     private ServerConnect serverConnect;
 
     private Timer progressTimer;
+    private Timer volumeChangeTimer;
 
     MainFrameController(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
@@ -28,11 +35,12 @@ class MainFrameController implements ActionListener, StatusChangedListener, Seek
 
         serverStatus = new ServerStatus(this, serverConnect);
 
-
         mainFrame.adressBox.setText(Prefs.getServer());
         mainFrame.adressBox.setEnabled(false);
 
         progressTimer = new Timer(1000, e -> updateProgress());
+        volumeChangeTimer = new Timer(100, e -> serverStatus.setVolume(mainFrame.volumeSlider.getValue()));
+        volumeChangeTimer.setRepeats(false);
 
         registerHotkeys();
         serverStatus.requestNewStatus();
@@ -82,6 +90,11 @@ class MainFrameController implements ActionListener, StatusChangedListener, Seek
             serverStatus.togglePlaying();
         } else if (source.equals(mainFrame.prevBtn)) {
             serverStatus.playPrevious();
+        } else if (source.equals(mainFrame.shutdownBtn)) {
+            if (JOptionPane.showConfirmDialog(mainFrame.contentPane, "Server wirklich killen?", "Bestätigung",
+                    JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                serverStatus.shutdownServer();
+            }
         }
     }
 
@@ -111,6 +124,8 @@ class MainFrameController implements ActionListener, StatusChangedListener, Seek
             mainFrame.playBtn.setText("Play");
             progressTimer.stop();
         }
+
+        mainFrame.volumeSlider.setValue(serverStatus.getVolume());
     }
 
     private void updateProgress() {
@@ -121,6 +136,8 @@ class MainFrameController implements ActionListener, StatusChangedListener, Seek
             progressTimer.stop();
         } else {
             progressBar.setValue(progressBar.getValue() + 1);
+            progressBar.setString(Util.getTimeSpanString(progressBar.getValue()) + " - "
+                    + Util.getTimeSpanString(serverStatus.getTrackLength()));
         }
     }
 
@@ -151,6 +168,40 @@ class MainFrameController implements ActionListener, StatusChangedListener, Seek
             case JIntellitype.APPCOMMAND_MEDIA_PREVIOUSTRACK:
                 serverStatus.playPrevious();
                 break;
+            case JIntellitypeConstants.APPCOMMAND_VOLUME_UP:
+                serverStatus.increaseVolume();
+                break;
+            case JIntellitypeConstants.APPCOMMAND_VOLUME_DOWN:
+                serverStatus.decreaseVolume();
+                break;
         }
     }
+
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        volumeChangeTimer.restart();
+    }
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+        JSlider volumeSlider = mainFrame.volumeSlider;
+        int notches = e.getWheelRotation();
+
+        if (notches < 0) {
+            if (volumeSlider.getValue() == 100) {
+                return;
+            }
+
+            volumeSlider.setValue(Math.min(100, volumeSlider.getValue() + 2));
+            serverStatus.increaseVolume();
+        } else if (notches > 0) {
+            if (volumeSlider.getValue() == 0) {
+                return;
+            }
+
+            volumeSlider.setValue(Math.max(0, volumeSlider.getValue() - 2));
+            serverStatus.decreaseVolume();
+        }
+    }
+
 }
