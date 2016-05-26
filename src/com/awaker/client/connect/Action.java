@@ -7,7 +7,6 @@ import java.awt.*;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 
 @SuppressWarnings({"WeakerAccess"})
 public class Action {
@@ -51,8 +50,8 @@ public class Action {
         return new Action("togglePlayPause", null, listener);
     }
 
-    public static Action playFiles(ArrayList<String> uris, ResponseListener listener, UploadStatusListener uploadStatusListener) {
-        return new Action("", null, listener);//TODO mach das
+    public static Action uploadFile(String uri, final ResponseListener listener, UploadStatusListener uploadStatusListener) {
+        return new Action(uri, "checkFile", listener, uploadStatusListener);
     }
 
     public static Action playFromPosition(int position, ResponseListener listener) {
@@ -150,8 +149,14 @@ public class Action {
 
         String response = in.readLine();
 
-        if (command.equals("playFile") && response != null && response.equals("file not found")) {
-            new Action(filePath, "uploadAndPlayFile", listener, uploadStatusListener).execute(socket);
+        if ((command.equals("playFile") || command.equals("checkFile"))
+                && response != null && response.equals("file not found")) {
+
+            if (command.equals("playFile")) {
+                new Action(filePath, "uploadAndPlayFile", listener, uploadStatusListener).execute(socket);
+            } else {
+                new Action(filePath, "uploadFile", listener, uploadStatusListener).execute(socket);
+            }
         } else if (listener != null) {
             listener.responseReceived(this, response);
         }
@@ -161,6 +166,7 @@ public class Action {
         String action = command;
         switch (command) {
             case "playFile":
+            case "checkFile":
                 TrackWrapper trackWrapper = MediaManager.readFile(new File(filePath));
 
                 if (trackWrapper == null) {
@@ -172,6 +178,7 @@ public class Action {
 
                 break;
             case "uploadAndPlayFile":
+            case "uploadFile":
                 File fileToSend = new File(filePath);
 
                 if (fileToSend.exists() && fileToSend.isFile()) {

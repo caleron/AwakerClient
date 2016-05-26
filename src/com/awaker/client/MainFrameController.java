@@ -3,6 +3,7 @@ package com.awaker.client;
 import com.awaker.client.connect.ServerConnect;
 import com.awaker.client.connect.ServerStatus;
 import com.awaker.client.connect.StatusChangedListener;
+import com.awaker.client.connect.UploadStatusListener;
 import com.awaker.client.custom.SeekListener;
 import com.awaker.client.util.Prefs;
 import com.awaker.client.util.Util;
@@ -13,12 +14,18 @@ import com.melloware.jintellitype.JIntellitypeConstants;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.dnd.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.io.File;
+import java.util.List;
 
-class MainFrameController implements ActionListener, StatusChangedListener, SeekListener, IntellitypeListener, ChangeListener, MouseWheelListener {
+class MainFrameController implements ActionListener, StatusChangedListener, SeekListener, IntellitypeListener,
+        ChangeListener, MouseWheelListener, DropTargetListener, UploadStatusListener {
     private MainFrame mainFrame;
     private ServerStatus serverStatus;
     private ServerConnect serverConnect;
@@ -204,4 +211,67 @@ class MainFrameController implements ActionListener, StatusChangedListener, Seek
         }
     }
 
+    @Override
+    public void drop(DropTargetDropEvent event) {
+        event.acceptDrop(DnDConstants.ACTION_COPY);
+
+        // Get the transfer which can provide the dropped item data
+        Transferable transferable = event.getTransferable();
+
+        // Get the data formats of the dropped item
+        DataFlavor[] flavors = transferable.getTransferDataFlavors();
+
+        // Loop through the flavors
+        for (DataFlavor flavor : flavors) {
+            try {
+                // If the drop items are files
+                if (flavor.isFlavorJavaFileListType()) {
+                    // Get all of the dropped files
+                    List<File> files = (List<File>) transferable.getTransferData(flavor);
+
+                    boolean first = true;
+
+                    // Loop them through
+                    for (File file : files) {
+                        if (first) {
+                            first = false;
+                            serverStatus.playFile(file.getPath(), this);
+                        }
+                        serverStatus.uploadFile(file.getPath(), this);
+                        System.out.println(file);
+                    }
+                }
+            } catch (Exception e) {
+                // Print out the error stack
+                e.printStackTrace();
+            }
+        }
+        // Inform that the drop is complete
+        event.dropComplete(true);
+    }
+
+    @Override
+    public void updateUploadStatus(String text, int progressPercent) {
+        mainFrame.uploadProgressBar.setValue(progressPercent);
+    }
+
+    /*
+    Nicht benötigte Interface-Methoden ab hier
+     */
+
+    @Override
+    public void dragEnter(DropTargetDragEvent dtde) {
+    }
+
+    @Override
+    public void dragOver(DropTargetDragEvent dtde) {
+    }
+
+    @Override
+    public void dropActionChanged(DropTargetDragEvent dtde) {
+    }
+
+    @Override
+    public void dragExit(DropTargetEvent dte) {
+    }
 }

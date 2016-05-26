@@ -164,6 +164,16 @@ public class ServerStatus implements Serializable, ResponseListener {
     }
 
     /**
+     * Lädt eine Datei hoch.
+     *
+     * @param path                 Der Pfad zur Datei
+     * @param uploadStatusListener der {@link UploadStatusListener}
+     */
+    public void uploadFile(String path, UploadStatusListener uploadStatusListener) {
+        serverConnect.executeAction(Action.uploadFile(path, this, uploadStatusListener));
+    }
+
+    /**
      * Spielt den vorigen Track.
      */
     public void playPrevious() {

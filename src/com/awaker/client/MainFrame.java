@@ -7,6 +7,8 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
 
 public class MainFrame {
     JPanel contentPane;
@@ -22,6 +24,7 @@ public class MainFrame {
     private JLabel statusLabel;
     JButton shutdownBtn;
     JSlider volumeSlider;
+    JProgressBar uploadProgressBar;
 
     private MainFrame() {
         controller = new MainFrameController(this);
@@ -39,6 +42,9 @@ public class MainFrame {
         initCenterPanel();
         initStatusBar();
         initSideBar();
+
+        //Drag'n'Drop ins fenster erlauben
+        new DropTarget(contentPane, DnDConstants.ACTION_COPY, controller);
 
         controller.init();
     }
@@ -80,21 +86,30 @@ public class MainFrame {
 
         centerPanel.add(buttonPanel, GbcBuilder.build(0, 0));
 
-        JPanel bottomPanel = new JPanel(new GridBagLayout());
+        JPanel progressPanel = new JPanel(new GridBagLayout());
 
         titleLabel = new JLabel("Titel - Künstler", SwingConstants.CENTER);
-        bottomPanel.add(titleLabel, GbcBuilder.build(0, 0).fillBoth().center());
+        progressPanel.add(titleLabel, GbcBuilder.build(0, 0).fillBoth().center());
 
         progressBar = new PlayProgressBar();
         progressBar.setSeekListener(controller);
         progressBar.setStringPainted(true);
-        bottomPanel.add(progressBar, GbcBuilder.build(0, 1, 1, 1, 1, 0).fillBoth());
+        progressPanel.add(progressBar, GbcBuilder.build(0, 1, 1, 1, 1, 0).fillBoth());
 
-        centerPanel.add(bottomPanel, GbcBuilder.build(0, 1, 1, 1, 1, 0).fillBoth());
+        centerPanel.add(progressPanel, GbcBuilder.build(0, 1, 1, 1, 1, 0).fillBoth());
 
         shutdownBtn = new JButton("Server killen");
         shutdownBtn.addActionListener(controller);
         centerPanel.add(shutdownBtn, GbcBuilder.build(0, 2));
+
+        JPanel uploadPanel = new JPanel(new GridBagLayout());
+        JLabel uploadLabel = new JLabel("Uploadstatus:");
+        uploadProgressBar = new JProgressBar(0, 100);
+        uploadProgressBar.setStringPainted(true);
+
+        uploadPanel.add(uploadLabel, GbcBuilder.build(0, 0));
+        uploadPanel.add(uploadProgressBar, GbcBuilder.build(1, 0, 1, 1, 1, 0).fillBoth());
+        centerPanel.add(uploadPanel, GbcBuilder.build(0, 3, 1, 1, 1, 1).fillBoth());
 
         contentPane.add(centerPanel, BorderLayout.CENTER);
     }
