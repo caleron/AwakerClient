@@ -138,7 +138,7 @@ public class Action {
         os.write(commandBytes);
 
         //Datei hochladen, falls notwendig
-        if (command.equals("uploadAndPlayFile")) {
+        if (command.equals("uploadAndPlayFile") || command.equals("uploadFile")) {
             uploadFile(os);
         } else if (command.equals("sendString")) {
             sendString(args[0], os);
