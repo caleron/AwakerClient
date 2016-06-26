@@ -1,5 +1,6 @@
 package com.awaker.client;
 
+import com.awaker.client.audio.AudioCapture;
 import com.awaker.client.connect.ServerConnect;
 import com.awaker.client.connect.ServerStatus;
 import com.awaker.client.connect.StatusChangedListener;
@@ -51,6 +52,9 @@ class MainFrameController implements ActionListener, StatusChangedListener, Seek
 
         registerHotkeys();
         serverStatus.requestNewStatus();
+
+        //AudioCapture ac = new AudioCapture();
+        //ac.start();
     }
 
     private void registerHotkeys() {

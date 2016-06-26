@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Class-Path: mp3agic-0.8.4.jar jintellitype-1.3.9.jar
+Main-Class: com.awaker.client.MainFrame
+
