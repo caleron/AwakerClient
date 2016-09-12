@@ -9,5 +9,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="jintellitype-1.3" level="project" />
     <orderEntry type="library" name="com.mpatric:mp3agic:0.8.4" level="project" />
+    <orderEntry type="library" name="com.google.code.gson:gson:2.7" level="project" />
+    <orderEntry type="library" name="Java-WebSocket-1.3.0-javadoc" level="project" />
   </component>
 </module>
