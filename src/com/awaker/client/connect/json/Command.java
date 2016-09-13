@@ -41,7 +41,7 @@ public class Command {
     public static final String REBOOT_RASPI = "rebootRaspi";
     public static final String REBOOT_SERVER = "rebootServer";
 
-    private String action;
+    public String action;
 
     private String name;
     private int playlistId;
@@ -58,6 +58,7 @@ public class Command {
     private int red;
     private int green;
     private int blue;
+    private boolean smooth;
 
     private boolean shuffle;
     private int volume;
@@ -106,15 +107,17 @@ public class Command {
         return this;
     }
 
-    public Command setWhiteBrightness(int brightness) {
+    public Command setWhiteBrightness(int brightness, boolean smooth) {
         action = SET_WHITE_BRIGHTNESS;
         this.brightness = brightness;
+        this.smooth = smooth;
         return this;
     }
 
-    public Command setAnimationBrightness(int brightness) {
+    public Command setAnimationBrightness(int brightness, boolean smooth) {
         action = SET_ANIMATION_BRIGHTNESS;
         this.brightness = brightness;
+        this.smooth = smooth;
         return this;
     }
 
