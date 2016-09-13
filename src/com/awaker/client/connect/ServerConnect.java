@@ -21,6 +21,7 @@ public class ServerConnect extends WebSocketClient {
     public void sendCommand(Command command) {
         String text = gson.toJson(command);
         send(text);
+        System.out.println("Sending command " + command.action);
     }
 
     @Override
