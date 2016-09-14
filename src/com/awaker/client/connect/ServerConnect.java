@@ -27,6 +27,7 @@ public class ServerConnect extends WebSocketClient {
     @Override
     public void onOpen(ServerHandshake handshakedata) {
         listener.setStatus("Verbunden");
+        listener.connectionStatusChanged(true);
         new Command(Command.GET_STATUS).send(this);
     }
 
@@ -39,6 +40,7 @@ public class ServerConnect extends WebSocketClient {
     @Override
     public void onClose(int code, String reason, boolean remote) {
         listener.setStatus("Verbindung getrennt: " + reason);
+        listener.connectionStatusChanged(false);
     }
 
     @Override

@@ -11,6 +11,7 @@ import com.melloware.jintellitype.IntellitypeListener;
 import com.melloware.jintellitype.JIntellitype;
 import com.melloware.jintellitype.JIntellitypeConstants;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -23,11 +24,16 @@ class MainFrameController implements ActionListener, IntellitypeListener, Status
     private ServerStatus serverStatus;
     private ServerConnect serverConnect;
 
+    private Image connectedIcon;
+    private Image disconnectedIcon;
+    private TrayIcon trayIcon;
+
     MainFrameController(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
     }
 
     void init() {
+        setupTrayIcon();
         establishConnection();
         new Integrator(serverConnect).startWatch();
 
@@ -49,7 +55,35 @@ class MainFrameController implements ActionListener, IntellitypeListener, Status
         jIntellitype.addIntellitypeListener(this);
 
         //Beim beenden aufräumen
-        Runtime.getRuntime().addShutdownHook(new Thread(jIntellitype::cleanUp));
+        Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
+    }
+
+    private void shutdown() {
+        JIntellitype.getInstance().cleanUp();
+        if (SystemTray.isSupported()) {
+            SystemTray.getSystemTray().remove(trayIcon);
+        }
+    }
+
+    private void setupTrayIcon() {
+        if (!SystemTray.isSupported()) {
+            return;
+        }
+        SystemTray tray = SystemTray.getSystemTray();
+        try {
+            disconnectedIcon = ImageIO.read(getClass().getResource("images/disconnected_icon.png"));
+            connectedIcon = ImageIO.read(getClass().getResource("images/connected_icon.png"));
+            //Icons an Größe anpassen
+            Dimension trayIconSize = tray.getTrayIconSize();
+            disconnectedIcon = disconnectedIcon.getScaledInstance(trayIconSize.width, trayIconSize.height, Image.SCALE_SMOOTH);
+            connectedIcon = connectedIcon.getScaledInstance(trayIconSize.width, trayIconSize.height, Image.SCALE_SMOOTH);
+
+            trayIcon = new TrayIcon(disconnectedIcon, "AwakerClient");
+            tray.add(trayIcon);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     private void establishConnection() {
@@ -94,15 +128,17 @@ class MainFrameController implements ActionListener, IntellitypeListener, Status
     }
 
     @Override
-    public void serverStatusChanged(boolean newSong) {
-
+    public void answerReceived(Answer answer) {
+        if (serverStatus.newAnswer(answer)) {
+            if (answer.currentTitle != null && answer.currentArtist != null && answer.playing) {
+                trayIcon.displayMessage(answer.currentTitle, answer.currentArtist, TrayIcon.MessageType.INFO);
+            }
+        }
     }
 
     @Override
-    public void answerReceived(Answer answer) {
-        if (serverStatus.newAnswer(answer)) {
-            //neuer song
-        }
+    public void connectionStatusChanged(boolean connected) {
+        trayIcon.setImage(connected ? connectedIcon : disconnectedIcon);
     }
 
     public void showError(String error) {
@@ -132,4 +168,6 @@ class MainFrameController implements ActionListener, IntellitypeListener, Status
                 break;
         }
     }
+
+
 }
