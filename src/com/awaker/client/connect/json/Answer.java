@@ -1,5 +1,6 @@
 package com.awaker.client.connect.json;
 
+import java.util.HashMap;
 import java.util.List;
 
 @SuppressWarnings("unused")
@@ -19,7 +20,7 @@ public class Answer {
     public String currentAlbum;
     public String currentArtist;
     public int currentTrackId;
-    public int repeatMode;
+    public String repeatMode;
     public int volume;
     public int trackLength;
     public int playPosition;
@@ -28,8 +29,14 @@ public class Answer {
 
     public List<Track> tracks;
     public List<Playlist> playLists;
+    public Playlist trackQueue;
 
-    public boolean fileNotFound;
+    public String name;
+    public String value;
+    public HashMap<String, String> config;
+    public String[] configOptions;
+
+    private boolean fileNotFound;
 
     public Answer() {
     }
