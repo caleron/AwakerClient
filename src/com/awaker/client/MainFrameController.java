@@ -139,10 +139,14 @@ class MainFrameController implements ActionListener, IntellitypeListener, Status
     @Override
     public void connectionStatusChanged(boolean connected) {
         trayIcon.setImage(connected ? connectedIcon : disconnectedIcon);
+        if (!connected) {
+            //neu verbinden
+            establishConnection();
+        }
     }
 
     public void showError(String error) {
-        JOptionPane.showMessageDialog(mainFrame.contentPane, error, "Fehler", JOptionPane.ERROR_MESSAGE);
+        setStatus("Fehler: " + error);
     }
 
     @Override
