@@ -13,6 +13,7 @@ public class Integrator {
     private Thread thread;
 
     private boolean dimmed = false;
+    private String[] dimFullScreenWindows = new String[]{"media player", "mozilla firefox"};
 
     public Integrator(ServerConnect connect) {
         this.connect = connect;
@@ -64,9 +65,12 @@ public class Integrator {
 
         switch (type) {
             case "FullScreenWindowFocused":
-                if (argument.toLowerCase().contains("media player")) {
-                    new Command().setWhiteBrightness(10, true).send(connect);
-                    dimmed = true;
+                for (String name : dimFullScreenWindows) {
+                    if (argument.toLowerCase().contains(name)) {
+                        new Command().setWhiteBrightness(10, true).send(connect);
+                        dimmed = true;
+                        break;
+                    }
                 }
                 break;
             case "FullScreenWindowFocusLost":
