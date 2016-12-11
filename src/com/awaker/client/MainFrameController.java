@@ -56,11 +56,7 @@ class MainFrameController implements ActionListener, IntellitypeListener, Status
         jIntellitype.addIntellitypeListener(this);
 
         //Beim beenden aufräumen
-        Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
-    }
-
-    private void shutdown() {
-        JIntellitype.getInstance().cleanUp();
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> JIntellitype.getInstance().cleanUp()));
     }
 
     private void setupTrayIcon() {
