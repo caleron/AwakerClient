@@ -61,9 +61,6 @@ class MainFrameController implements ActionListener, IntellitypeListener, Status
 
     private void shutdown() {
         JIntellitype.getInstance().cleanUp();
-        if (SystemTray.isSupported()) {
-            SystemTray.getSystemTray().remove(trayIcon);
-        }
     }
 
     private void setupTrayIcon() {
