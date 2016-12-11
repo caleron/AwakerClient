@@ -5,7 +5,7 @@ import com.awaker.client.connect.ServerStatus;
 import com.awaker.client.connect.StatusChangedListener;
 import com.awaker.client.connect.json.Answer;
 import com.awaker.client.connect.json.Command;
-import com.awaker.client.integration.Integrator;
+import com.awaker.client.integration.FullscreenDetector;
 import com.awaker.client.util.Prefs;
 import com.melloware.jintellitype.IntellitypeListener;
 import com.melloware.jintellitype.JIntellitype;
@@ -35,7 +35,8 @@ class MainFrameController implements ActionListener, IntellitypeListener, Status
     void init() {
         setupTrayIcon();
         establishConnection();
-        new Integrator(serverConnect).startWatch();
+
+        new FullscreenDetector(serverConnect).start();
 
         mainFrame.adressBox.setText(Prefs.getServer());
         mainFrame.adressBox.setEnabled(false);
